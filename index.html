@@ -10,5 +10,16 @@
     <!--this is where three.js will draw 3d world-->
     <canvas id="spacecanvas"></canvas>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        //create the empty space (scene)
+        const scene=new THREE.Scene();
+        //create the cam
+        const cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+        camera.position.z=5//move the cam back so we can acc see things
+        //create the drawing
+        const canvas=document.getElementById('spacecanvas');
+        const renderer=new THREE.WebGLRenderer({canvas:canvas});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    </script>
 </body>
 </html>
