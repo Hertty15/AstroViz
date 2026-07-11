@@ -20,6 +20,24 @@
         const canvas=document.getElementById('spacecanvas');
         const renderer=new THREE.WebGLRenderer({canvas:canvas});
         renderer.setSize(window.innerWidth, window.innerHeight);
+
+        //create a sphrer
+        const sungeometry=new THREE.SphereGeometry(1,32,32);
+        //create material
+        const sunmaterial=new THREE.MeshBasicMaterial({color: 0xffaa00});
+        //coombine them
+        const sun=new THREE.Mesh(sungeometry,sunmaterial);
+        //add to scene
+        scene.add(sun);
+
+        function animate(){
+            //it to draw scene from cam's pov
+            renderer.render(scene, cam);
+            //loop it
+            requestAnimationFrame(animate);
+        }
+        //start loop
+        animate();
     </script>
 </body>
 </html>
