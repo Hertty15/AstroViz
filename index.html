@@ -35,6 +35,8 @@
             renderer.render(scene, cam);
             //loop it
             requestAnimationFrame(animate);
+            //make sun rotate
+            sun.rotation.y+=0.01;
         }
         //start loop
         animate();
