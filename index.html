@@ -11,6 +11,13 @@
     <canvas id="spacecanvas"></canvas>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        //nasa data
+        const MARS={
+            AU: 1.524,//semi major axis
+            ORBITAL_PERIOD: 686.98,//earth days
+            SIZE: 0.4,//relative to sun being 1.0
+            COLOR: 0xff4400
+        };
         //create the empty space (scene)
         const scene=new THREE.Scene();
         //create the cam
@@ -30,6 +37,16 @@
         //add to scene
         scene.add(sun);
 
+        //creat mars
+        const marsgeometry=new THREE.SphereGeometry(MARS.SIZE, 32,32);
+        const marsmaterial=new THREE.MeshBasicMaterial({
+            color:MARS.COLOR,
+            emissive:MARS.COLOR*0.2,
+            shininess:30
+        });
+        const mars=new THREE.Mesh(marsgeometry,marsmaterial);
+        scene.add(mars);
+
         function animate(){
             //it to draw scene from cam's pov
             renderer.render(scene, cam);
@@ -37,6 +54,10 @@
             requestAnimationFrame(animate);
             //make sun rotate
             sun.rotation.y+=0.01;
+            //mars orbit
+            const marsangle=Date.now()/(MARS.ORBITAL_PERIOD*86400000)*Math.PI*2;
+            mars.position.x=Math.cos(marsangle)*MARS.AU*100;
+            mars.position.y=Math.sin(marsangle)*MARS.AU*100;
         }
         //start loop
         animate();
