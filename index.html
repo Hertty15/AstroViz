@@ -50,6 +50,8 @@
 
     <!--three.js and nasa loader-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!--orbit controls-->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControl.min.js"></script>
     <script>
         //
         //nasa eyes-core sys
@@ -63,7 +65,7 @@
         const renderer=new THREE.WebGLRenderer({canvas, antialias:true});
         renderer.setSize(window.innerWidth,window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        camera.position.z=50//start zoomed out
+        camera.position.z=20//start zoomed out
 
         //adddign realistic lighting
         //spacey glow
@@ -181,8 +183,5 @@
             renderer.setSize(window.innerWidth,window.innerHeight);
         });
     </script>
-
-    <!--orbit controls-->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControl.min.js"></script>
 </body>
 </html>
