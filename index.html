@@ -18,7 +18,7 @@
         scene.add(new THREE.AmbientLight(0x404040,0.5));
         //add dirictionl lihgt
         const sunlight=new THREE.DirectionalLight(0xffffff, 1);
-        sunlight.position.set(5,3,5);//postion near sun
+        sunlight.position.set(0,10,0);//postion near sun
         scene.add(sunlight);
         
         //create the cam
@@ -52,7 +52,7 @@
         scene.add(sun);
 
         //creat mars
-        const marsgeometry=new THREE.SphereGeometry(MARS.SIZE, 32,32);
+        const marsgeometry=new THREE.SphereGeometry(1.0, 32,32);
         const marsmaterial=new THREE.MeshPhongMaterial({
             color:MARS.COLOR,
             emissive:MARS.COLOR,
@@ -93,8 +93,8 @@
             //fix mars scale
             const SCALE=10;
             const marsangle=Date.now()/(MARS.ORBITAL_PERIOD*86400000)*Math.PI*2;
-            mars.position.x=Math.cos(marsangle)*MARS.AU*100;
-            mars.position.y=Math.sin(marsangle)*MARS.AU*100;
+            mars.position.x=Math.cos(marsangle)*MARS.AU*SCALE;
+            mars.position.y=Math.sin(marsangle)*MARS.AU*SCALE;
         }
         //start loop
         animate();
