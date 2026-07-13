@@ -1,116 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Solar System</title>
+    <title>NASA Eyes</title>
     <style>
-        body{margin: 0; background-color: black;}
+        body{
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Helvetica Neue' Arial, sans-serif;
+        }
+        #info-panel{
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+        }
+        #time-control{
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
-    <!--this is where three.js will draw 3d world-->
-    <canvas id="spacecanvas"></canvas>
+    <canvas id="spaceCanvas"></canvas>
+
+    <!--nasa like info panel-->
+    <div id="info-panel">
+        <h3 style="margin: 0 0 10px 0">Mars Simulation</h3>
+        <p id="distance-text">Distance from Sun: -- AU</p>
+        <p id="speed-text">Orbital Speed: -- km</p>
+        <p id="time-text">Date: --</p>
+    </div>
+
+    <!--time control-->
+    <div id="time-control">
+        <label>Simulation Speed:
+            <input type="range" id="speed-slider" min="1" max="1000" value="100">
+        </label>
+    </div>
+
+    <!--three.js and nasa loader-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        const textureLoader=new THREE.textureLoader();
-        //create the empty space (scene)
+        //
+        //nasa eyes-core sys
+        //
+        //
+
+        //intitialise three.js
+        const canvas=document.getElementById('spaceCanvas');
         const scene=new THREE.Scene();
+        const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+        const renderer=new THREE.WebGLRenderer({canvas, antialias:true});
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.z=50//start zoomed out
 
-        //add ambient light
-        scene.add(new THREE.AmbientLight(0x404040,0.5));
-        //add dirictionl lihgt
-        const sunlight=new THREE.DirectionalLight(0xffffff, 1);
-        sunlight.position.set(0,10,0);//postion near sun
+        //adddign realistic lighting
+        //spacey glow
+        scene.add(new THREE.AmbientLight(0x222222,0.5));
+        
+        //directioanl ligth
+        const sunlight=new THREE.DirectionalLight(0xffffff,1);
+        sunlight.position.set(0,10,0);
         scene.add(sunlight);
-        
-        //create the cam
-        const cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
-        cam.position.z=25//move the cam back so we can acc see things
-        
-        //create the drawing
-        const canvas=document.getElementById('spacecanvas');
-        const renderer=new THREE.WebGLRenderer({canvas:canvas});
-        renderer.setSize(window.innerWidth, window.innerHeight);
 
-        //nasa data
-        const MARS={
-            AU: 1.524,//semi major axis
-            ORBITAL_PERIOD: 686.98,//earth days
-            SIZE: 0.4,//relative to sun being 1.0
-            COLOR: 0xff4400
-        };
-
-        //create a sphrer
+        //create solar system objs
+        //sun(with texture)
         const sungeometry=new THREE.SphereGeometry(1.5,32,32);
-        //create material
         const sunmaterial=new THREE.MeshPhongMaterial({
-            color: 0xffaa00,
-            emissive: 0xffff00,
-            emissiveIntensity:1
+            color:0xffff00,
+            emissive:0xffaa00,
+            emmisiveintensity:1
         });
-        //coombine them
         const sun=new THREE.Mesh(sungeometry,sunmaterial);
-        //add to scene
         scene.add(sun);
 
-        //creat mars
-        const marsgeometry=new THREE.SphereGeometry(1.0, 32,32);
+        //mars(with texture)
+        const marsgeometry=new THREE.SphereGeometry(0.4,32,32);
         const marsmaterial=new THREE.MeshPhongMaterial({
-            color:MARS.COLOR,
-            emissive:MARS.COLOR,
-            emissiveIntensity:0.2,
-            shininess:30
+            color:0xff4400,
+            emissive:0xff4400,
+            emmisiveintensity:0.1
         });
-        const mars=new THREE.Mesh(marsgeometry,marsmaterial);
+        const mars=new THREE.Mesh(marsgeometry,marsmaterial)
         scene.add(mars);
 
-        //get live asteroids from nasa
-        async function loadAsteroids(){
-            const api_key='5KKvp64tkbDpluf4cgu56808bw5tY811azybHPsw';
-            const response=await fetch(`https://api.nasa.gov/neo/rest/v1/feed??api_key=${api_key}`);
-            const data=await response.json();
-            //create asteroid objects
-            Object.values(data.near_earth_objects).flat().slice(0,5).forEach(asteroid => {
-                const size=Math.sqrt(asteroid.estimated_diameter.kilometers.estimated_diameter_max)*0.05;
-                const asteroidgeo=new THREE.SphereGeometry(size, 16,16);
-                const asteroidmaterial=new THREE.MeshPhongMaterial({color:0x888888});
-                const asteroidobject=new THREE.Mesh(asteroidgeo,asteroidmaterial);
-                
-                //position near earths orbit
-                asteroidobject.position.x=Math.random()*20-10;
-                asteroidobject.position.y=Math.random()-20-10;
-                scene.add(asteroidobject);
-            });
+        //orbital trail
+        const orbitPoints=[];
+        for(let i=0; i<360; i++){
+            const angle=i*Math.PI/180;
+            orbitPoints.push(new THREE.Vector3(
+                Math.cos(angle)*15,//15 AU scale
+                Math.sin(angle)*15,
+                0
+            ));
         }
-        loadAsteroids();
+        const orbitgeometry=new THREE.BufferGeometry().setFromPoints(orbitPoints);
+        const orbitmaterial=new THREE.LineBasicMaterial({color:0x4444ff, transparent:true, opacity:0.5});
+        const orbitalLine=new THREE.Line(orbitgeometry,orbitmaterial);
+        scene.add(orbitalLine);
 
-        //sun texture
-        const suntexture=textureLoader.load('https://threejs.org/examples/textures/sprites/sun.png');
-        sunmaterial.map=suntexture;
-        sunmaterial.emissive=new THREE.color(0xffff00);
-        sunmaterial.emissiveIntensity=1;
+        //nasa data integration (orbit mechanics)
+        //nasa apikey
+        const NASA_API_KEY='5KKvp64tkbDpluf4cgu56808bw5tY811azybHPsw';
 
-        //mars texture
-        const marstexture=textureLoader.load('https://threejs.org/examples/textures/sprites/mars.png');
-        marsmaterial.map=marstexture;
-        marsmaterial.emissive=new THREE.color(0xff4400);
-        marsmaterial.emissiveIntensity=0.1;
+        //mars orbital parameters
+        const MARS_ORBIT={
+            a:1.524, //semi-major axis (AU)
+            e:0.0934, //eccentricity
+            i:1.85,   //inclination(degrees)
+            w:286.5,   //argument of periapsis(deg)
+            meanMotion:0.524 //deg per day
+        };
 
+        //real-time date tracker
+        let currentDate=new Date();
+        const EPOCH=new Date(2024,0,1);//start date
+
+        //animation loop
         function animate(){
-            //it to draw scene from cam's pov
-            renderer.render(scene, cam);
-            //loop it
             requestAnimationFrame(animate);
-            //make sun rotate
-            sun.rotation.y+=0.01;
-            //mars orbit
-            //fix mars scale
-            const SCALE=10;
-            const marsangle=Date.now()/(MARS.ORBITAL_PERIOD*86400000/100)*Math.PI*2;
-            mars.position.x=Math.cos(marsangle)*MARS.AU*SCALE;
-            mars.position.y=Math.sin(marsangle)*MARS.AU*SCALE;
+
+            //updatesimulationspeed
+            const speed=document.getElementById('speed-slider').value;
+            currentDate=new Date(EPOCH.getTime()+(date.now()-EPOCH.getTime()) *speed/100);
+
+            //calc mars position using keplers equation
+            const daysSinceEpoch=(currentDate-EPOCH)/86400000;
+            const meanAnomaly=(daysSinceEpoch*MARS_ORBIT.meanMotion)%360;
+
+            //simplified keplers equation
+            const eccentricAnomaly=meanAnomaly+MARS_ORBIT.e*Math.sin(meanAnomaly*Math.PI/180);
+            const trueAnomaly=2*Math.atan2(
+                Math.sprt(1+MARS_ORBIT.e)*Math.sin(eccentricAnomaly*Math.PI/180/2),
+                Math.sprt(1-MARS_ORBIT.e)*Math.sin(eccentricAnomaly*Math.PI/180/2)
+            );
+
+            //convert to 3d postion(simplified)
+            const r=MARS_ORBIT.a*(1-MARS_ORBIT.e*MARS_ORBIT.e)/(1+MARS_ORBIT.e*Math.cos(trueAnomaly));
+            mars.position.x=r*Math.cos(trueAnomaly);
+            mars.position.y=r*Math.sin(trueAnomaly);
+            mars.position=0;
+
+            //updte info panel
+            const distance=Math.sqrt(mars.position.x**2+mars.position.y**2);
+            document.getElementById('distance-text').textContent=`Distance from Sun: ${distance.toFixed(2)} AU`;
+            document.getElementById('speed-text').textContent=`Orbital Speed: ${(distance*0.001).toFixed(2)}km/s`;
+            document.getElementById('time-text').textContent=`Date: ${currentDate.toISOString().split('T')[0]}`;
+
+            //rotate sun for visuals
+            sun.rotation.y+=0.001;
+
+            //render scene
+            renderer.render(scene,camera);
         }
-        //start loop
+
+        //initialise
+        //add orbit controls
+        const controls=new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping=true;
+        controls.dampingFactor=0.05;
+
+        //start animation
         animate();
+
+        //handle window resize
+        window.addEventListener('resize', ()=>{
+            camera.aspect=window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth,window.innerHeight);
+        });
     </script>
+
+    <!--orbit controls-->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControl.min.js"></script>
 </body>
 </html>
