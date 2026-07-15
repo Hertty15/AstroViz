@@ -92,7 +92,7 @@
         // ===== SUN =====
         const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({
-            map: textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/9/99/Map_of_the_full_sun.jpg')
+            color: 0xffff00
         });
         const sun = new THREE.Mesh(sunGeometry, sunMaterial);
         scene.add(sun);
@@ -100,8 +100,8 @@
         // ===== MARS =====
         const marsGeometry = new THREE.SphereGeometry(1, 32, 32);
         const marsMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/0/02/Solarsystemscope_texture_2k_mars.jpg'),
-            shininess: 10
+            color: 0xff4400,
+            shininess: 30
         });
         const mars = new THREE.Mesh(marsGeometry, marsMaterial);
         scene.add(mars);
@@ -128,31 +128,33 @@
         scene.add(orbitLine);
 
         // ===== ANIMATION =====
-        let time = 0;
-        const marsOrbitalPeriod = 687; // days
-        const speedSlider = document.getElementById('speedSlider');
+        let simulationSeconds=0
+        const speedSlider=document.getElementById('speedSlider');
 
         function animate() {
             requestAnimationFrame(animate);
 
-            const speed = speedSlider.value / 10;
-            time += 0.01 * speed;
+            const speedMultiplier=parseInt(speedSlider.value);
+            simulationSeconds+=speedMultiplier/60
+            
+            //calc acc date
+            const startDate=new Date(); //starts today
+            const currentDate=new Date(startDate.getTime()+simulationSeconds*1000);
 
-            // Mars orbit (circular for simplicity)
-            const angle = time * (2 * Math.PI / marsOrbitalPeriod);
-            mars.position.x = Math.cos(angle) * orbitRadius;
-            mars.position.z = Math.sin(angle) * orbitRadius;
+            //mars orbit calc
+            const marsOrbitalPeriod=687*24*60*60; //convert to seconds
+            const marsAngle=(simulationSeconds%marsOrbitalPeriod)/marsOrbitalPeriod*2*Math.PI;
+
+            mars.position.x = Math.cos(marsAngle) * orbitRadius;
+            mars.position.z = Math.sin(marsAngle) * orbitRadius;
 
             // Rotate Sun
             sun.rotation.y += 0.002;
 
             // Update info
-            const distance = Math.sqrt(
-                mars.position.x ** 2 + mars.position.z ** 2
-            ) / orbitRadius;
+            const distance = Math.sqrt(mars.position.x ** 2 + mars.position.z ** 2) / orbitRadius;
             document.getElementById('distance').textContent = distance.toFixed(2);
-            document.getElementById('date').textContent = 
-                new Date(Date.now() + time * 86400000).toLocaleDateString();
+            document.getElementById('date').textContent = currentDate.toLocaleDateString();
 
             controls.update();
             renderer.render(scene, camera);
