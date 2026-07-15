@@ -135,15 +135,14 @@
             requestAnimationFrame(animate);
 
             const speedMultiplier=parseInt(speedSlider.value);
-            simulationSeconds+=speedMultiplier/60
+            simulationDay+=speedMultiplier/60
             
             //calc acc date
             const startDate=new Date(); //starts today
-            const currentDate=new Date(startDate.getTime()+simulationSeconds*1000);
+            const currentDate=new Date(startDate.getTime()+simulationDay*24*60*60*1000);
 
             //mars orbit calc
-            const marsOrbitalPeriod=687*24*60*60; //convert to seconds
-            const marsAngle=(simulationSeconds%marsOrbitalPeriod)/marsOrbitalPeriod*2*Math.PI;
+            const marsAngle=(simulationDay%687)/687*2*Math.PI;
 
             mars.position.x = Math.cos(marsAngle) * orbitRadius;
             mars.position.z = Math.sin(marsAngle) * orbitRadius;
