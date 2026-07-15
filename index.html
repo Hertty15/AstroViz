@@ -128,26 +128,34 @@
         scene.add(orbitLine);
 
         // ===== ANIMATION =====
-        let simulationDays = 0;
+        let simulationSeconds = 0;
         const speedSlider = document.getElementById('speedSlider');
+        let lastFrameTime=Date.now();
 
         function animate() {
             requestAnimationFrame(animate);
 
-            const speedMultiplier = parseInt(speedSlider.value);
-            simulationDays += speedMultiplier / 60;
-            
-            const startDate = new Date();
-            const currentDate = new Date(startDate.getTime() + simulationDays * 24 * 60 * 60 * 1000);
-            
-            const marsAngle = (simulationDays % 687) / 687 * 2 * Math.PI;
-            
+            const currentTime=Date.now();
+            const realSecondsPassed=(currentTime-lastFrameTime)/1000;
+            lastFrameTime=currentTime;
+
+            const speedMultiplier=parseInt(speedSlider.value);
+
+            simulationSeconds+=realSecondsPassed * speedMultiplier;
+
+            const simulationDays=simulationSeconds/86400;
+            const startDate=new Date();
+            const currentDate=new Date(startDate.getTime() + simulationDays * 24 * 60 * 60 * 1000);
+
+            const marsOrbitalPeriodSeconds = 687 * 86400;
+            const marsAngle = (simulationSeconds % marsOrbitalPeriodSeconds) / marsOrbitalPeriodSeconds * 2 * Math.PI;
+
             mars.position.x = Math.cos(marsAngle) * orbitRadius;
             mars.position.z = Math.sin(marsAngle) * orbitRadius;
-            
+
             const distance = Math.sqrt(mars.position.x ** 2 + mars.position.z ** 2) / orbitRadius;
             document.getElementById('distance').textContent = distance.toFixed(2);
-            document.getElementById('date').textContent = currentDate.toLocaleDateString();
+            document.getElementById('date').textContent = currentDate.toLocaleString();
 
             controls.update();
             renderer.render(scene, camera);
