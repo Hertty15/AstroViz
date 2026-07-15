@@ -34,7 +34,8 @@
 </head>
 <body>
     <div id="speed-control">
-        Speed: <input type="range" id="speedSlider" min="1" max="100" value="10">
+        <label>Time Scale: <span id="speedValue">1 sec/sec</span></label>
+        <input type="range" id="speedSlider" min="0" max="100" value="0" step="1">
     </div>
     <div id="info">
         <h3 style="margin: 0 0 10px 0;">Mars Simulation</h3>
@@ -128,34 +129,69 @@
         scene.add(orbitLine);
 
         // ===== ANIMATION =====
-        let simulationSeconds = 0;
-        const speedSlider = document.getElementById('speedSlider');
+        let simulationSeconds=0;
+        const speedSlider=document.getElementById('speedSlider');
+        const speedValueDisplay=document.getElementById('speedValue');
         let lastFrameTime=Date.now();
 
-        function animate() {
+        //loga time scale
+        function getTimeMultiplier(sliderValue){
+            //this creates exponential scaling
+            //slider 0 = 1x reake time
+            //slider 50 = 316x
+            //slider 100 = 1,000,000x
+            return Math.pow(10,sliderValue/20);
+        }
+
+        //update display text based on speed
+        function updateSpeedDisplay(multiplier){
+            let text;
+            if(multiplier<60){
+                text=`${multiplier.toFixed(1)} sec/sec`;
+            }else if (multiplier<3600){
+                text=`${(multiplier/60).toFixed(1)} min/sec`;
+            }else if(multiplier<86400){
+                text=`${(multiplier/3600).toFixed(1)} hour/sec`;
+            }else if (multiplier<31536000){
+                text=`${(multiplier/86400).toFixed(1)} day/sec`;
+            }else{
+                text=`${(multiplier/31536000).toFixed(1)} year/sec`;
+            }
+            speedValueDisplay.textContent=text;
+        }
+
+        function animate(){
             requestAnimationFrame(animate);
 
             const currentTime=Date.now();
             const realSecondsPassed=(currentTime-lastFrameTime)/1000;
             lastFrameTime=currentTime;
 
-            const speedMultiplier=parseInt(speedSlider.value);
+            const sliderValue=parseInt(speedSlider.value);
+            const speedMultiplier=getTimeMultiplier(sliderValue);
 
+            //updt displ
+            updateSpeedDisplay(speedMultiplier);
+
+            //add sim time
             simulationSeconds+=realSecondsPassed * speedMultiplier;
 
+            //cnvrt to days
             const simulationDays=simulationSeconds/86400;
-            const startDate=new Date();
-            const currentDate=new Date(startDate.getTime() + simulationDays * 24 * 60 * 60 * 1000);
+            const startDate=new Date.now();
+            const currentDate=new Date(startDate.getTime()+simulationDays * 24 * 60 * 60 * 1000);
 
-            const marsOrbitalPeriodSeconds = 687 * 86400;
-            const marsAngle = (simulationSeconds % marsOrbitalPeriodSeconds) / marsOrbitalPeriodSeconds * 2 * Math.PI;
+            //mars orbit
+            const marsOrbitPeriodSeconds=687*86400;
+            const marsAngle=(simulationSeconds%marsOrbitPeriodSeconds)/marsOrbitPeriodSeconds * 2 * Math.PI;
 
-            mars.position.x = Math.cos(marsAngle) * orbitRadius;
-            mars.position.z = Math.sin(marsAngle) * orbitRadius;
+            mars.position.x=Math.cos(marsAngle) * orbitRadius;
+            mars.position.z=Math.sin(marsAngle) * orbitRadius;
 
-            const distance = Math.sqrt(mars.position.x ** 2 + mars.position.z ** 2) / orbitRadius;
-            document.getElementById('distance').textContent = distance.toFixed(2);
-            document.getElementById('date').textContent = currentDate.toLocaleString();
+            //update ui
+            const distance=Math.sqrt(mars.position.x ** 2 + mars.position.z ** 2) / orbitRadius;
+            document.getElementById('distance').textContent=distance.toFixed(2);
+            document.getElementById('date').textContent=currentDate.toLocaleDateString();
 
             controls.update();
             renderer.render(scene, camera);
