@@ -128,29 +128,23 @@
         scene.add(orbitLine);
 
         // ===== ANIMATION =====
-        let simulationSeconds=0
-        const speedSlider=document.getElementById('speedSlider');
+        let simulationDays = 0;
+        const speedSlider = document.getElementById('speedSlider');
 
         function animate() {
             requestAnimationFrame(animate);
 
-            const speedMultiplier=parseInt(speedSlider.value);
-            simulationDay+=speedMultiplier/60
+            const speedMultiplier = parseInt(speedSlider.value);
+            simulationDays += speedMultiplier / 60;
             
-            //calc acc date
-            const startDate=new Date(); //starts today
-            const currentDate=new Date(startDate.getTime()+simulationDay*24*60*60*1000);
-
-            //mars orbit calc
-            const marsAngle=(simulationDay%687)/687*2*Math.PI;
-
+            const startDate = new Date();
+            const currentDate = new Date(startDate.getTime() + simulationDays * 24 * 60 * 60 * 1000);
+            
+            const marsAngle = (simulationDays % 687) / 687 * 2 * Math.PI;
+            
             mars.position.x = Math.cos(marsAngle) * orbitRadius;
             mars.position.z = Math.sin(marsAngle) * orbitRadius;
-
-            // Rotate Sun
-            sun.rotation.y += 0.002;
-
-            // Update info
+            
             const distance = Math.sqrt(mars.position.x ** 2 + mars.position.z ** 2) / orbitRadius;
             document.getElementById('distance').textContent = distance.toFixed(2);
             document.getElementById('date').textContent = currentDate.toLocaleDateString();
