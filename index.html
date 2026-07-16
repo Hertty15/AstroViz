@@ -36,6 +36,7 @@
     <div id="speed-control">
         <label>Time Scale: <span id="speedValue">1 sec/sec</span></label>
         <input type="range" id="speedSlider" min="0" max="100" value="0" step="1">
+        <p id="speedText" style="color: #4da6ff; margin-top: 5px;">1 sec/sec</p>
     </div>
     <div id="info">
         <h3 style="margin: 0 0 10px 0;">Mars Simulation</h3>
@@ -145,19 +146,24 @@
 
         //update display text based on speed
         function updateSpeedDisplay(multiplier){
-            let text;
+            let text="";
             if(multiplier<60){
-                text=`${multiplier.toFixed(1)} sec/sec`;
+                text=multiplier.toFixed(1) + "sec/sec";
             }else if (multiplier<3600){
-                text=`${(multiplier/60).toFixed(1)} min/sec`;
+                text=(multiplier/60).toFixed(1) + "min/sec";
             }else if(multiplier<86400){
-                text=`${(multiplier/3600).toFixed(1)} hour/sec`;
+                text=(multiplier/3600).toFixed(1) + "hour/sec";
             }else if (multiplier<31536000){
-                text=`${(multiplier/86400).toFixed(1)} day/sec`;
+                text=(multiplier/86400).toFixed(1) + "day/sec";
             }else{
-                text=`${(multiplier/31536000).toFixed(1)} year/sec`;
+                text=(multiplier/31536000).toFixed(2) + "year/sec";
             }
-            speedValueDisplay.textContent=text;
+            document.getElementById('speedText').innerText=text;
+        }
+
+        //calc speed multi (1to1,000,00)
+        function getSpeedMultiplier(sliderValue){
+            return Math.pow(10,(sliderValue/100)*6);
         }
 
         function animate(){
@@ -168,13 +174,13 @@
             lastFrameTime=currentTime;
 
             const sliderValue=parseInt(speedSlider.value);
-            const speedMultiplier=getTimeMultiplier(sliderValue);
+            const multiplier=getSpeedMultiplier(sliderValue);
 
             //updt displ
-            updateSpeedDisplay(speedMultiplier);
+            updateSpeedText(multiplier);
 
             //add sim time
-            simulationSeconds+=realSecondsPassed * speedMultiplier;
+            simulationSeconds+=realSecondsPassed * multiplier;
 
             //cnvrt to days
             const simulationDays=simulationSeconds/86400;
